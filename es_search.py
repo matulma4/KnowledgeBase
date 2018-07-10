@@ -123,10 +123,10 @@ def write_to_file(ls):
         for k in ls:
             # ent, k_name = create_entity(k)
             for article in k.articles:
-                r1, r2 = create_property(article.text, k.e_id, "article", article.id)
-                f.write(r1 + "\n" + r2 + "\n")
+                r1, r2, r3 = create_property(article.text, article.headline, k.e_id, "article", article.id)
+                f.write(r1 + "\n" + r3 + "\n" + r2 + "\n")
             for funfact in k.funfacts:
-                r1, r2 = create_property(funfact.text, k.e_id, "funfact", funfact.id)
+                r1, r2, r3 = create_property(funfact.text, None, k.e_id, "funfact", funfact.id)
                 f.write(r1 + "\n" + r2 + "\n")
                 # g.write(ent + "\n")
 
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     span = '5y'
     es = create_es()
     print(es.info())
-    limit = 100
+    limit = 10
     dct = {}
 
     dct = add_entities(query_es("facts", "reddit-*", span), extract_from_ff, add_ff, dct)

@@ -14,7 +14,7 @@ class Entity:
         self.popularity += 1
 
     def add_article(self, article):
-        self.articles.append(NewsArticle(article.headline, article.meta.id))
+        self.articles.append(NewsArticle(article.body, article.meta.id, article.headline))
         self.popularity += 1
 
 
@@ -25,9 +25,7 @@ class FunFact:
 
 
 class NewsArticle:
-    def __init__(self, text, id):
+    def __init__(self, text, id, headline):
         self.text = text
+        self.headline = headline
         self.id = id
-
-
-

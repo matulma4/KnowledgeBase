@@ -3,7 +3,7 @@ fb_namespace = "http://rdf.freebase.com/ns/"
 owl_namespace = "http://www.w3.org/2002/07/owl#"
 
 
-def create_property(text, concept_id, property, object_id):
+def create_property(text, headline, concept_id, property, object_id):
     subject_1 = "<" + fb_namespace + concept_id + ">"
     predicate_1 = "<" + our_namespace + "in" + property.capitalize() + ">"  # TODO change to existing relation
     object_1 = "<" + our_namespace + property + "/" + object_id + ">"
@@ -11,8 +11,14 @@ def create_property(text, concept_id, property, object_id):
     subject_2 = "<" + our_namespace + property + "/" + object_id + ">"
     predicate_2 = "<" + our_namespace + "hasText>"  # TODO change to existing relation
     object_2 = "\"" + text + "\"" + "@en"
+    spo_3 = None
+    if headline is not None:
+        subject_3 = "<" + our_namespace + property + "/" + object_id + ">"
+        predicate_3 = "<" + our_namespace + "hasHeadline>"  # TODO change to existing relation
+        object_3 = "\"" + headline + "\"" + "@en"
+        spo_3 = " ".join([subject_3, predicate_3, object_3, "."])
 
-    return " ".join([subject_1, predicate_1, object_1, "."]), " ".join([subject_2, predicate_2, object_2, "."])
+    return " ".join([subject_1, predicate_1, object_1, "."]), " ".join([subject_2, predicate_2, object_2, "."]), spo_3
 
 
 def create_entity(ent_name):

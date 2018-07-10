@@ -108,9 +108,9 @@ def add_entities(res, extract_func, add_func, dct):
         except AttributeError as e:
             print(e)
             pass
-        i += 1
-        if i >= limit:
+        if i == limit:
             break
+        i += 1
 
     print("Processed " + str(i) + " articles.\n")
     return dct

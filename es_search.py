@@ -7,6 +7,7 @@ from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q
 from nltk import ne_chunk, pos_tag, word_tokenize
 from nltk.tree import Tree
+import nltk
 from requests_aws4auth import AWS4Auth
 
 from config import *
@@ -16,7 +17,7 @@ from ld_creator import create_property, create_entity
 
 def query_label_lookup(name):
     r = requests.get('http://34.196.128.143:5000/search/' + name.replace(" ", "%20"))
-    return json.loads(r.content)
+    return json.loads(r.content.decode('utf-8'))
 
 
 def extract_entities(text):
@@ -132,10 +133,14 @@ def write_to_file(ls):
 
 
 if __name__ == '__main__':
-    span = '5y'
+    span = sys.argv[1]
+    nltk.download('averaged_perceptron_tagger')
+    nltk.download('punkt')
+    nltk.download('maxent_ne_chunker')
+    nltk.download('words')
     es = create_es()
     print(es.info())
-    limit = 10
+    limit = -1
     dct = {}
 
     dct = add_entities(query_es("facts", "reddit-*", span), extract_from_ff, add_ff, dct)

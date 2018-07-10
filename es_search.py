@@ -111,6 +111,8 @@ def add_entities(res, extract_func, add_func, dct):
         i += 1
         if i >= limit:
             break
+
+    print("Processed " + str(i) + " articles.\n")
     return dct
 
 
@@ -142,8 +144,11 @@ if __name__ == '__main__':
     print(es.info())
     limit = -1
     dct = {}
+    print("Span is " + span + ", limit is " + str(limit) + ".\n")
 
     dct = add_entities(query_es("facts", "reddit-*", span), extract_from_ff, add_ff, dct)
+    print("Found " + str(len(dct.keys())) + " entities so far.\n")
     dct = add_entities(query_es("article", "washpost_article*", span), extract_from_art, add_art, dct)
+    print("Found " + str(len(dct.keys())) + " entities so far.\n")
     ent_ls = list(dct.values())
     write_to_file(ent_ls)

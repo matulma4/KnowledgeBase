@@ -1,18 +1,17 @@
 import json
 import sys
 
+import nltk
 import requests
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q
 from nltk import ne_chunk, pos_tag, word_tokenize
 from nltk.tree import Tree
-import nltk
 from requests_aws4auth import AWS4Auth
 
 from config import *
-from entity import Entity
-from ld_creator import create_property, create_entity
+from ld_creator import create_property, create_text, create_headline
 
 
 def query_label_lookup(name):
@@ -89,31 +88,50 @@ def add_ff(ff, ent):
     ent.add_funfact(ff)
 
 
-def add_entities(res, extract_func, add_func, dct):
+def add_entities(res, extract_func, mode):
     i = 0
     for article in res:
+        R1 = []
+        R3 = []
         try:
             entities = extract_func(article)
 
             for p in entities:
                 q = query_label_lookup(p)['results']
                 if len(q) <= 0 or len(q[0]) <= 0:
-                    i += 1
+                    # i += 1
                     continue
                     # if q[0]["canonLabel"] != p:
                     #     continue
-                if p not in dct.keys():
-                    dct[p] = Entity(p, q[0][0]["freebase_id"])
-                add_func(article, dct[p])
+                # if p not in dct.keys():
+                #     dct[p] = Entity(p, q[0][0]["freebase_id"])
+                # add_func(article, dct[p])
+                if mode == "funfact":
+                    r1 = create_property(q[0][0]["freebase_id"], mode, article.id)
+                    R1.append(r1)
+                    # f.write(r1 + "\n")
+                else:
+                    r1 = create_property(q[0][0]["freebase_id"], mode, article.meta.id)
+                    R1.append(r1)
+                    # f.write(r1 + "\n" + r3 + "\n")
+            if mode == "funfact":
+                f.write("\n".join(R1) + "\n")
+                f.write(create_text(article.id, article.text, mode) + "\n")
+            else:
+                f.write("\n".join(R1) + "\n")
+                f.write(create_headline(article.meta.id, article.headline, mode) + "\n")
+                f.write(create_text(article.meta.id, article.body, mode) + "\n")
         except AttributeError as e:
             print(e)
             pass
         if i == limit:
             break
+        # print(i)
         i += 1
+        f.flush()
 
     print("Processed " + str(i) + " articles.\n")
-    return dct
+    # return dct
 
 
 def query_es(doctype, bucket, timespan):
@@ -135,20 +153,22 @@ def write_to_file(ls):
 
 
 if __name__ == '__main__':
-    span = sys.argv[1]
+    span = '5y'  # sys.argv[1]
     nltk.download('averaged_perceptron_tagger')
     nltk.download('punkt')
     nltk.download('maxent_ne_chunker')
     nltk.download('words')
     es = create_es()
     print(es.info())
-    limit = -1
-    dct = {}
+    limit = 100
+
+    f = open(rdf_name + ".rdf", "w", encoding="utf-8")
     print("Span is " + span + ", limit is " + str(limit) + ".\n")
 
-    dct = add_entities(query_es("facts", "reddit-*", span), extract_from_ff, add_ff, dct)
-    print("Found " + str(len(dct.keys())) + " entities so far.\n")
-    dct = add_entities(query_es("article", "washpost_article*", span), extract_from_art, add_art, dct)
-    print("Found " + str(len(dct.keys())) + " entities so far.\n")
-    ent_ls = list(dct.values())
-    write_to_file(ent_ls)
+    add_entities(query_es("facts", "reddit-*", span), extract_from_ff, "funfact")
+    # print("Found " + str(len(dct.keys())) + " entities so far.\n")
+    add_entities(query_es("article", "washpost_article*", span), extract_from_art, "article")
+    f.close()
+    # print("Found " + str(len(dct.keys())) + " entities so far.\n")
+    # ent_ls = list(dct.values())
+    # write_to_file(ent_ls)

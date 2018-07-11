@@ -3,22 +3,26 @@ fb_namespace = "http://rdf.freebase.com/ns/"
 owl_namespace = "http://www.w3.org/2002/07/owl#"
 
 
-def create_property(text, headline, concept_id, property, object_id):
+def create_property(concept_id, prop, object_id):
     subject_1 = "<" + fb_namespace + concept_id + ">"
-    predicate_1 = "<" + our_namespace + "in" + property.capitalize() + ">"  # TODO change to existing relation
-    object_1 = "<" + our_namespace + property + "/" + object_id + ">"
+    predicate_1 = "<" + our_namespace + "in" + prop.capitalize() + ">"
+    object_1 = "<" + our_namespace + prop + "/" + object_id + ">"
 
-    subject_2 = "<" + our_namespace + property + "/" + object_id + ">"
-    predicate_2 = "<" + our_namespace + "hasText>"  # TODO change to existing relation
+    return " ".join([subject_1, predicate_1, object_1, "."])
+
+
+def create_text(object_id, text, prop):
+    subject_2 = "<" + our_namespace + prop + "/" + object_id + ">"
+    predicate_2 = "<" + our_namespace + "hasText>"
     object_2 = "\"" + text + "\"" + "@en"
-    spo_3 = None
-    if headline is not None:
-        subject_3 = "<" + our_namespace + property + "/" + object_id + ">"
-        predicate_3 = "<" + our_namespace + "hasHeadline>"  # TODO change to existing relation
-        object_3 = "\"" + headline + "\"" + "@en"
-        spo_3 = " ".join([subject_3, predicate_3, object_3, "."])
+    return " ".join([subject_2, predicate_2, object_2, "."])
 
-    return " ".join([subject_1, predicate_1, object_1, "."]), " ".join([subject_2, predicate_2, object_2, "."]), spo_3
+
+def create_headline(object_id, headline, prop):
+    subject_3 = "<" + our_namespace + prop + "/" + object_id + ">"
+    predicate_3 = "<" + our_namespace + "hasHeadline>"
+    object_3 = "\"" + headline + "\"" + "@en"
+    return " ".join([subject_3, predicate_3, object_3, "."])
 
 
 def create_entity(ent_name):
@@ -34,6 +38,3 @@ def create_entity(ent_name):
 
     return " ".join([subject, predicate, _object, "."]), k_name
 
-
-if __name__ == '__main__':
-    print(create_property("Hello world", "m.12314", "funfact",""))

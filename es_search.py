@@ -112,11 +112,11 @@ def add_entities(res, extract_func, mode):
                 R1.append(r1)
             if mode == "funfact":
                 f.write("\n".join(R1) + "\n")
-                f.write(create_text(article.id, article.text, mode) + "\n")
+                f.write(create_text(article.id, article.text.replace("\"", ""), mode) + "\n")
             else:
                 f.write("\n".join(R1) + "\n")
-                f.write(create_headline(article.meta.id, article.headline, mode) + "\n")
-                f.write(create_text(article.meta.id, article.body, mode) + "\n")
+                f.write(create_headline(article.meta.id, article.headline.replace("\"", ""), mode) + "\n")
+                f.write(create_text(article.meta.id, article.body.replace("\"", ""), mode) + "\n")
         except AttributeError as e:
             print(e)
             pass

@@ -15,7 +15,7 @@ from ld_creator import create_property, create_text, create_headline
 
 
 def query_label_lookup(name):
-    r = requests.get('http://34.196.128.143:5000/search/' + name.replace(" ", "%20"))
+    r = requests.get(lookup_url + name.replace(" ", "%20"))
     return json.loads(r.content.decode('utf-8'))
 
 
@@ -92,28 +92,19 @@ def add_entities(res, extract_func, mode):
     i = 0
     for article in res:
         R1 = []
-        R3 = []
         try:
             entities = extract_func(article)
 
             for p in entities:
                 q = query_label_lookup(p)['results']
                 if len(q) <= 0 or len(q[0]) <= 0:
-                    # i += 1
                     continue
-                    # if q[0]["canonLabel"] != p:
-                    #     continue
-                # if p not in dct.keys():
-                #     dct[p] = Entity(p, q[0][0]["freebase_id"])
-                # add_func(article, dct[p])
                 if mode == "funfact":
                     r1 = create_property(q[0][0]["freebase_id"], mode, article.id)
                     R1.append(r1)
-                    # f.write(r1 + "\n")
                 else:
                     r1 = create_property(q[0][0]["freebase_id"], mode, article.meta.id)
                     R1.append(r1)
-                    # f.write(r1 + "\n" + r3 + "\n")
             if mode == "funfact":
                 f.write("\n".join(R1) + "\n")
                 f.write(create_text(article.id, article.text, mode) + "\n")
@@ -131,7 +122,6 @@ def add_entities(res, extract_func, mode):
         f.flush()
 
     print("Processed " + str(i) + " articles.\n")
-    # return dct
 
 
 def query_es(doctype, bucket, timespan):
@@ -142,33 +132,27 @@ def query_es(doctype, bucket, timespan):
 def write_to_file(ls):
     with open(rdf_name + ".rdf", "w", encoding="utf-8") as f:  # , open(ent_name + ".rdf", "w", encoding="utf-8") as g:
         for k in ls:
-            # ent, k_name = create_entity(k)
             for article in k.articles:
-                r1, r2, r3 = create_property(article.text, article.headline, k.e_id, "article", article.id)
+                r1, r2, r3 = create_property(k.e_id, "article", article.id)
                 f.write(r1 + "\n" + r3 + "\n" + r2 + "\n")
             for funfact in k.funfacts:
-                r1, r2, r3 = create_property(funfact.text, None, k.e_id, "funfact", funfact.id)
+                r1, r2, r3 = create_property(k.e_id, "funfact", funfact.id)
                 f.write(r1 + "\n" + r2 + "\n")
-                # g.write(ent + "\n")
 
 
 if __name__ == '__main__':
-    span = '5y'  # sys.argv[1]
+    span = sys.argv[1]
     nltk.download('averaged_perceptron_tagger')
     nltk.download('punkt')
     nltk.download('maxent_ne_chunker')
     nltk.download('words')
     es = create_es()
     print(es.info())
-    limit = 100
+    limit = -1
 
     f = open(rdf_name + ".rdf", "w", encoding="utf-8")
     print("Span is " + span + ", limit is " + str(limit) + ".\n")
 
     add_entities(query_es("facts", "reddit-*", span), extract_from_ff, "funfact")
-    # print("Found " + str(len(dct.keys())) + " entities so far.\n")
     add_entities(query_es("article", "washpost_article*", span), extract_from_art, "article")
     f.close()
-    # print("Found " + str(len(dct.keys())) + " entities so far.\n")
-    # ent_ls = list(dct.values())
-    # write_to_file(ent_ls)

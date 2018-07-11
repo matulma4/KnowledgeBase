@@ -8,7 +8,6 @@ import requests
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q
-from flask import jsonify
 from nltk import ne_chunk, pos_tag, word_tokenize
 from nltk.tree import Tree
 from requests_aws4auth import AWS4Auth
@@ -156,7 +155,7 @@ def web_search(name, top_n=3):
     # print(result_list)
     # each word has several candidates, so we want to take topn of each
     split_list = [l[:top_n] for l in result_list]
-    return jsonify(results=split_list)
+    return {"results": split_list}
 
 
 def search(name):
@@ -170,7 +169,7 @@ def search(name):
             "SELECT label, probability, url, freebase_id from labels as l JOIN urls as u on l.url_id = u.id where label=?",
             (name,))
         sresult = cursor.fetchall()
-        print(sresult)
+        # print(sresult)
         # TODO: canonLabel? change dist?
         result_list = []
         for r in sresult:

@@ -1,12 +1,14 @@
+import gc
 import json
+import sqlite3
 import sys
 
-import gc
 import nltk
 import requests
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q
+from flask import jsonify
 from nltk import ne_chunk, pos_tag, word_tokenize
 from nltk.tree import Tree
 from requests_aws4auth import AWS4Auth
@@ -41,7 +43,7 @@ def create_es():
     try:
         keys = open("creds.aws").read().strip().split(" ")
     except FileNotFoundError:
-        print("AWS credenitals file missing")
+        print("AWS credentials file missing")
         sys.exit(1)
     awsauth = AWS4Auth(keys[0], keys[1], "us-east-1", 'es')
 
@@ -99,7 +101,7 @@ def add_entities(res, extract_func, mode):
             entities = extract_func(article)
 
             for p in entities:
-                q = query_label_lookup(p)['results']
+                q = web_search(p)['results']
                 if len(q) <= 0 or len(q[0]) <= 0:
                     continue
                 if mode == "funfact":
@@ -143,6 +145,43 @@ def write_to_file(ls):
             for funfact in k.funfacts:
                 r1, r2, r3 = create_property(k.e_id, "funfact", funfact.id)
                 f.write(r1 + "\n" + r2 + "\n")
+
+
+def web_search(name, top_n=3):
+    # look for ngram or look just for the whole string
+    # db = ""
+    result_list = [search(name)]
+
+    # print('looking for:', name)
+    # print(result_list)
+    # each word has several candidates, so we want to take topn of each
+    split_list = [l[:top_n] for l in result_list]
+    return jsonify(results=split_list)
+
+
+def search(name):
+    name = name.lower()
+    # connection = sqlite3.connect(db)
+    # connection.text_factory = str
+    with sqlite3.connect(db) as connection:
+        cursor = connection.cursor()
+        connection.text_factory = str
+        cursor.execute(
+            "SELECT label, probability, url, freebase_id from labels as l JOIN urls as u on l.url_id = u.id where label=?",
+            (name,))
+        sresult = cursor.fetchall()
+        print(sresult)
+        # TODO: canonLabel? change dist?
+        result_list = []
+        for r in sresult:
+            result = {
+                'matchedLabel': r[0],
+                'db_id': r[2],
+                'freebase_id': r[3],
+                'prob': r[1]
+            }
+            result_list.append(result)
+        return result_list
 
 
 if __name__ == '__main__':

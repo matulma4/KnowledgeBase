@@ -5,4 +5,5 @@ host = 'search-elastic-crawled-data-ftz4qk7ud65hcmugp2mmylgk4u.us-east-1.es.amaz
 rdf_name = "articles"
 ent_name = "ent_test2"
 
+db = "/home/matulma4/docker/data/labels/fb_db.sqlite"
 lookup_url = 'http://34.196.128.143:5000/search/'

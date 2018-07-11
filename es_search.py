@@ -1,6 +1,7 @@
 import json
 import sys
 
+import gc
 import nltk
 import requests
 from elasticsearch import Elasticsearch, RequestsHttpConnection
@@ -54,9 +55,11 @@ def create_es():
 
 
 def make_search(es, index, query, time):
-    return Search(using=es, index=index).query(query).filter('range',
-                                                             **{'@timestamp': {'gte': 'now-' + time,
-                                                                               'lt': 'now'}}).scan()
+    s = Search(using=es, index=index)
+    s = s.query(query)
+    s = s.filter('range', **{'@timestamp': {'gte': 'now-' + time, 'lt': 'now'}})
+    s = s.params(scroll='6h')
+    return s.scan()
 
 
 def extract_from_ff(ff):
@@ -101,10 +104,10 @@ def add_entities(res, extract_func, mode):
                     continue
                 if mode == "funfact":
                     r1 = create_property(q[0][0]["freebase_id"], mode, article.id)
-                    R1.append(r1)
+                    # R1.append(r1)
                 else:
                     r1 = create_property(q[0][0]["freebase_id"], mode, article.meta.id)
-                    R1.append(r1)
+                R1.append(r1)
             if mode == "funfact":
                 f.write("\n".join(R1) + "\n")
                 f.write(create_text(article.id, article.text, mode) + "\n")
@@ -117,8 +120,10 @@ def add_entities(res, extract_func, mode):
             pass
         if i == limit:
             break
-        # print(i)
+        if i % 100 == 0:
+            print(i)
         i += 1
+        gc.collect()
         f.flush()
 
     print("Processed " + str(i) + " articles.\n")
@@ -141,6 +146,7 @@ def write_to_file(ls):
 
 
 if __name__ == '__main__':
+    gc.enable()
     span = sys.argv[1]
     nltk.download('averaged_perceptron_tagger')
     nltk.download('punkt')

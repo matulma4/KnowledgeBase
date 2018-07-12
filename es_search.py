@@ -112,12 +112,12 @@ def add_entities(res, extract_func, mode):
             if mode == "funfact":
                 f.write("\n".join(R1) + "\n")
                 f.write(create_text(article.id, article.text.replace("\"", "")) + "\n")
-                f.write(create_type(mode, article.id))
+                f.write(create_type(mode, article.id)+ "\n")
             else:
                 f.write("\n".join(R1) + "\n")
                 f.write(create_headline(article.meta.id, article.headline.replace("\"", "")) + "\n")
                 f.write(create_text(article.meta.id, article.body.replace("\"", "")) + "\n")
-                f.write(create_type(mode, article.meta.id))
+                f.write(create_type(mode, article.meta.id) + "\n")
         except AttributeError as e:
             print(e)
             pass
@@ -187,14 +187,14 @@ def search(name):
 
 if __name__ == '__main__':
     gc.enable()
-    span = '5y'#sys.argv[1]
+    span = sys.argv[1]
     nltk.download('averaged_perceptron_tagger')
     nltk.download('punkt')
     nltk.download('maxent_ne_chunker')
     nltk.download('words')
     es = create_es()
     print(es.info())
-    limit = 100
+    limit = -1
 
     f = open(rdf_name + ".rdf", "w", encoding="utf-8")
     print("Span is " + span + ", limit is " + str(limit) + ".\n")

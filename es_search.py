@@ -13,7 +13,7 @@ from nltk.tree import Tree
 from requests_aws4auth import AWS4Auth
 
 from config import *
-from ld_creator import create_property, create_text, create_headline
+from ld_creator import create_property, create_text, create_headline, create_type
 
 
 def query_label_lookup(name):
@@ -104,18 +104,20 @@ def add_entities(res, extract_func, mode):
                 if len(q) <= 0 or len(q[0]) <= 0:
                     continue
                 if mode == "funfact":
-                    r1 = create_property(q[0][0]["freebase_id"], mode, article.id)
+                    r1 = create_property(q[0][0]["freebase_id"], article.id)
                     # R1.append(r1)
                 else:
-                    r1 = create_property(q[0][0]["freebase_id"], mode, article.meta.id)
+                    r1 = create_property(q[0][0]["freebase_id"], article.meta.id)
                 R1.append(r1)
             if mode == "funfact":
                 f.write("\n".join(R1) + "\n")
-                f.write(create_text(article.id, article.text.replace("\"", ""), mode) + "\n")
+                f.write(create_text(article.id, article.text.replace("\"", "")) + "\n")
+                f.write(create_type(mode, article.id))
             else:
                 f.write("\n".join(R1) + "\n")
-                f.write(create_headline(article.meta.id, article.headline.replace("\"", ""), mode) + "\n")
-                f.write(create_text(article.meta.id, article.body.replace("\"", ""), mode) + "\n")
+                f.write(create_headline(article.meta.id, article.headline.replace("\"", "")) + "\n")
+                f.write(create_text(article.meta.id, article.body.replace("\"", "")) + "\n")
+                f.write(create_type(mode, article.meta.id))
         except AttributeError as e:
             print(e)
             pass
@@ -185,14 +187,14 @@ def search(name):
 
 if __name__ == '__main__':
     gc.enable()
-    span = sys.argv[1]
+    span = '5y'#sys.argv[1]
     nltk.download('averaged_perceptron_tagger')
     nltk.download('punkt')
     nltk.download('maxent_ne_chunker')
     nltk.download('words')
     es = create_es()
     print(es.info())
-    limit = -1
+    limit = 100
 
     f = open(rdf_name + ".rdf", "w", encoding="utf-8")
     print("Span is " + span + ", limit is " + str(limit) + ".\n")

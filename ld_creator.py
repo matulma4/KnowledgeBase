@@ -3,26 +3,34 @@ fb_namespace = "http://rdf.freebase.com/ns/"
 owl_namespace = "http://www.w3.org/2002/07/owl#"
 
 
-def create_property(concept_id, prop, object_id):
-    subject_1 = "<" + fb_namespace + concept_id + ">"
-    predicate_1 = "<" + our_namespace + "in" + prop.capitalize() + ">"
-    object_1 = "<" + our_namespace + prop + "/" + object_id + ">"
+def create_property(concept_id, object_id):
+    subject = "<" + fb_namespace + concept_id + ">"
+    predicate = "<" + our_namespace + "inArticle>"
+    _object = "<" + our_namespace + "/" + object_id + ">"
 
-    return " ".join([subject_1, predicate_1, object_1, "."])
-
-
-def create_text(object_id, text, prop):
-    subject_2 = "<" + our_namespace + prop + "/" + object_id + ">"
-    predicate_2 = "<" + our_namespace + "hasText>"
-    object_2 = "\"" + text + "\"" + "@en"
-    return " ".join([subject_2, predicate_2, object_2, "."])
+    return " ".join([subject, predicate, _object, "."])
 
 
-def create_headline(object_id, headline, prop):
-    subject_3 = "<" + our_namespace + prop + "/" + object_id + ">"
-    predicate_3 = "<" + our_namespace + "hasHeadline>"
-    object_3 = "\"" + headline + "\"" + "@en"
-    return " ".join([subject_3, predicate_3, object_3, "."])
+def create_text(object_id, text):
+    subject = "<" + our_namespace + "/" + object_id + ">"
+    predicate = "<" + our_namespace + "hasText>"
+    _object = "\"" + text + "\"" + "@en"
+    return " ".join([subject, predicate, _object, "."])
+
+
+def create_headline(object_id, headline):
+    subject = "<" + our_namespace + "/" + object_id + ">"
+    predicate = "<" + our_namespace + "hasHeadline>"
+    _object = "\"" + headline + "\"" + "@en"
+    return " ".join([subject, predicate, _object, "."])
+
+
+def create_type(prop, object_id):
+    subject = "<" + our_namespace + "/" + object_id + ">"
+    predicate = "<" + our_namespace + "isType>"
+    _object = "<" + our_namespace + prop + ">"
+    return " ".join([subject, predicate, _object, "."])
+    pass
 
 
 def create_entity(ent_name):

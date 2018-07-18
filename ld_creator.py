@@ -11,9 +11,9 @@ def create_property(concept_id, object_id):
     return " ".join([subject, predicate, _object, "."])
 
 
-def create_text(object_id, text):
+def create_text(object_id, text, prop):
     subject = "<" + our_namespace + object_id + ">"
-    predicate = "<" + our_namespace + "hasText>"
+    predicate = "<" + our_namespace + "has" + prop + ">"
     _object = "\"" + text + "\"" + "@en"
     return " ".join([subject, predicate, _object, "."])
 

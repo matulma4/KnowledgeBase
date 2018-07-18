@@ -11,9 +11,9 @@ from elasticsearch_dsl.query import Q
 from nltk import ne_chunk, pos_tag, word_tokenize
 from nltk.tree import Tree
 from requests_aws4auth import AWS4Auth
+from ld_creator import create_property, create_text, create_headline, create_type
 
 from config import *
-from ld_creator import create_property, create_text, create_headline, create_type
 
 
 def query_label_lookup(name):
@@ -111,12 +111,12 @@ def add_entities(res, extract_func, mode):
                 R1.append(r1)
             if mode == "funfact":
                 f.write("\n".join(R1) + "\n")
-                f.write(create_text(article.id, article.text.replace("\"", "")) + "\n")
-                f.write(create_type(mode, article.id)+ "\n")
+                f.write(create_text(article.id, article.text.replace("\"", ""), "Blurb") + "\n")
+                f.write(create_type(mode, article.id) + "\n")
             else:
                 f.write("\n".join(R1) + "\n")
                 f.write(create_headline(article.meta.id, article.headline.replace("\"", "")) + "\n")
-                f.write(create_text(article.meta.id, article.body.replace("\"", "")) + "\n")
+                f.write(create_text(article.meta.id, article.blurb.replace("\"", ""), "Blurb") + "\n")
                 f.write(create_type(mode, article.meta.id) + "\n")
         except AttributeError as e:
             print(e)

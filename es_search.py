@@ -132,7 +132,7 @@ def add_entities(res, extract_func, mode):
     print("Processed " + str(i) + " articles.\n")
 
 
-def query_es(doctype, bucket, timespan):
+def query_es(doctype, bucket, timespan, es):
     q = Q('match', type=doctype)
     return make_search(es, bucket, q, timespan)
 
@@ -199,6 +199,6 @@ if __name__ == '__main__':
     f = open(rdf_name + ".rdf", "w", encoding="utf-8")
     print("Span is " + span + ", limit is " + str(limit) + ".\n")
 
-    add_entities(query_es("facts", "reddit-*", span), extract_from_ff, "funfact")
-    add_entities(query_es("article", "washpost_article*", span), extract_from_art, "article")
+    add_entities(query_es("facts", "reddit-*", span, es), extract_from_ff, "funfact")
+    add_entities(query_es("article", "washpost_article*", span, es), extract_from_art, "article")
     f.close()

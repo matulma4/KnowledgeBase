@@ -84,6 +84,15 @@ def extract_from_art(art):
     return result
 
 
+def extract_from_gossip(goss):
+    result = []
+    try:
+        result += list(goss.tags)
+    except AttributeError:
+        pass
+    return result
+
+
 def add_art(art, ent):
     ent.add_article(art)
 
@@ -93,7 +102,7 @@ def add_ff(ff, ent):
 
 
 def add_entities(res, extract_func, mode):
-    i = 0
+    i = 1
     for article in res:
         R1 = []
         try:
@@ -113,10 +122,15 @@ def add_entities(res, extract_func, mode):
                 f.write("\n".join(R1) + "\n")
                 f.write(create_text(article.id, article.text.replace("\"", ""), "Blurb") + "\n")
                 f.write(create_type(mode, article.id) + "\n")
-            else:
+            elif mode == "article":
                 f.write("\n".join(R1) + "\n")
                 f.write(create_headline(article.meta.id, article.headline.replace("\"", "")) + "\n")
                 f.write(create_text(article.meta.id, article.blurb.replace("\"", ""), "Blurb") + "\n")
+                f.write(create_type(mode, article.meta.id) + "\n")
+            else:
+                f.write("\n".join(R1) + "\n")
+                f.write(create_headline(article.meta.id, article.title.replace("\"", "")) + "\n")
+                f.write(create_text(article.meta.id, article.title.replace("\"", ""), "Blurb") + "\n")
                 f.write(create_type(mode, article.meta.id) + "\n")
         except AttributeError as e:
             print(e)
@@ -200,5 +214,6 @@ if __name__ == '__main__':
     print("Span is " + span + ", limit is " + str(limit) + ".\n")
 
     add_entities(query_es("facts", "reddit-*", span, es), extract_from_ff, "funfact")
-    add_entities(query_es("article", "washpost_article*", span, es), extract_from_art, "article")
+    add_entities(query_es("article", "washpost_article*", '2d', es), extract_from_art, "article")
+    # add_entities(query_es("gossip", "gossip-*", '5y', es), extract_from_gossip, "gossip")
     f.close()

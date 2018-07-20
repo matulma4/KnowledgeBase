@@ -15,6 +15,7 @@ from ld_creator import create_property, create_text, create_headline, create_typ
 
 from config import *
 
+blacklist = [line.strip() for line in open("blacklist.txt")]
 
 def query_label_lookup(name):
     r = requests.get(lookup_url + name.replace(" ", "%20"))
@@ -31,7 +32,8 @@ def extract_entities(text):
         elif current_chunk:
             named_entity = " ".join(current_chunk)
             if named_entity not in continuous_chunk:
-                continuous_chunk.append(named_entity)
+                if named_entity not in blacklist:
+                    continuous_chunk.append(named_entity)
                 current_chunk = []
         else:
             continue

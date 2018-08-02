@@ -1,6 +1,7 @@
 our_namespace = "http://rdf.article.com/ns/"
 fb_namespace = "http://rdf.freebase.com/ns/"
 owl_namespace = "http://www.w3.org/2002/07/owl#"
+xsd_namespace = "http://www.w3.org/2001/XMLSchema#"
 
 
 def create_property(concept_id, object_id):
@@ -30,7 +31,13 @@ def create_type(prop, object_id):
     predicate = "<" + our_namespace + "isType>"
     _object = "<" + our_namespace + prop + ">"
     return " ".join([subject, predicate, _object, "."])
-    pass
+
+
+def create_date(prop, object_id):
+    subject = "<" + our_namespace + object_id + ">"
+    predicate = "<" + our_namespace + "hasDate>"
+    _object = "\"" + prop + "\"" + "^^<" + xsd_namespace + "date>"
+    return " ".join([subject, predicate, _object, "."])
 
 
 def create_entity(ent_name):

@@ -11,7 +11,7 @@ from elasticsearch_dsl.query import Q
 from nltk import ne_chunk, pos_tag, word_tokenize
 from nltk.tree import Tree
 from requests_aws4auth import AWS4Auth
-from ld_creator import create_property, create_text, create_headline, create_type
+from ld_creator import create_property, create_text, create_headline, create_type, create_date
 
 from config import *
 import os
@@ -158,10 +158,11 @@ def add_entities(res, extract_func, mode):
                 f.write(create_type(mode, article.id) + "\n")
             elif mode == "article":
                 # print(article.__dict__['_d_']['@timestamp'])
-                f.write("\n".join(R1) + "\n")
-                f.write(create_headline(article.meta.id, article.headline.replace("\"", "")) + "\n")
-                f.write(create_text(article.meta.id, article.blurb.replace("\"", ""), "Blurb") + "\n")
-                f.write(create_type(mode, article.meta.id) + "\n")
+                # f.write("\n".join(R1) + "\n")
+                #f.write(create_headline(article.meta.id, article.headline.replace("\"", "")) + "\n")
+                #f.write(create_text(article.meta.id, article.blurb.replace("\"", ""), "Blurb") + "\n")
+                #f.write(create_type(mode, article.meta.id) + "\n")
+                f.write(create_date(article.__dict__['_d_']['@timestamp'][:10], article.meta.id) + "\n")
             else:
                 f.write("\n".join(R1) + "\n")
                 f.write(create_headline(article.meta.id, article.title.replace("\"", "")) + "\n")
@@ -248,8 +249,8 @@ if __name__ == '__main__':
     f = open(rdf_name + ".rdf", "w", encoding="utf-8")
     print("Span is " + span + ", limit is " + str(limit) + ".\n")
 
-    add_entities(query_es("facts", "reddit-*", span, es), extract_from_ff, "funfact")
-    add_entities(query_es("article", "washpost_article*", '2d', es), extract_from_art, "article")
+    # add_entities(query_es("facts", "reddit-*", span, es), extract_from_ff, "funfact")
+    add_entities(query_es("article", "washpost_article*", '5y', es), extract_from_art, "article")
     # add_entities(query_es("gossip", "gossip-*", '5y', es), extract_from_gossip, "gossip")
     f.close()
 

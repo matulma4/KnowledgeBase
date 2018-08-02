@@ -14,8 +14,11 @@ from requests_aws4auth import AWS4Auth
 from ld_creator import create_property, create_text, create_headline, create_type
 
 from config import *
-
+import os
+java_path = "C:/Program Files/Java/jdk1.8.0_111/bin/java.exe"
+os.environ['JAVAHOME'] = java_path
 blacklist = [line.strip() for line in open("blacklist.txt")]
+
 
 def query_label_lookup(name):
     r = requests.get(lookup_url + name.replace(" ", "%20"))
@@ -38,6 +41,35 @@ def extract_entities(text):
         else:
             continue
     return continuous_chunk
+
+
+def extract_entities_stanford(text):
+    ne_tagger = nltk.StanfordNERTagger("E:/Martin/Škola/KnowledgeBase/stanford-ner-2018-02-27/classifiers/english.all.3class.distsim.crf.ser.gz","E:/Martin/Škola/KnowledgeBase/stanford-ner-2018-02-27/stanford-ner.jar")
+    chunked = ne_tagger.tag(word_tokenize(text))
+    current_chunk = []
+    result = []
+    ent_type = ""
+    for i in chunked:
+        if i[1] != 'O':
+            if i[1] == ent_type or not current_chunk:
+                current_chunk.append(i[0])
+            else:
+                result = create_ne(current_chunk, result)
+                current_chunk = []
+            ent_type = i[1]
+        elif current_chunk:
+            result = create_ne(current_chunk, result)
+            current_chunk = []
+    if current_chunk:
+        result = create_ne(current_chunk, result)
+    return result
+
+
+def create_ne(current_chunk, result):
+    named_entity = " ".join(current_chunk)
+    if named_entity not in result:
+        result.append(named_entity)
+    return result
 
 
 def create_es():
@@ -109,7 +141,7 @@ def add_entities(res, extract_func, mode):
         R1 = []
         try:
             entities = extract_func(article)
-
+            # print(entities)
             for p in entities:
                 q = web_search(p)['results']
                 if len(q) <= 0 or len(q[0]) <= 0:
@@ -125,6 +157,7 @@ def add_entities(res, extract_func, mode):
                 f.write(create_text(article.id, article.text.replace("\"", ""), "Blurb") + "\n")
                 f.write(create_type(mode, article.id) + "\n")
             elif mode == "article":
+                # print(article.__dict__['_d_']['@timestamp'])
                 f.write("\n".join(R1) + "\n")
                 f.write(create_headline(article.meta.id, article.headline.replace("\"", "")) + "\n")
                 f.write(create_text(article.meta.id, article.blurb.replace("\"", ""), "Blurb") + "\n")
@@ -203,7 +236,7 @@ def search(name):
 
 if __name__ == '__main__':
     gc.enable()
-    span = sys.argv[1]
+    span = '2d'#sys.argv[1]
     nltk.download('averaged_perceptron_tagger')
     nltk.download('punkt')
     nltk.download('maxent_ne_chunker')
@@ -219,3 +252,10 @@ if __name__ == '__main__':
     add_entities(query_es("article", "washpost_article*", '2d', es), extract_from_art, "article")
     # add_entities(query_es("gossip", "gossip-*", '5y', es), extract_from_gossip, "gossip")
     f.close()
+
+
+if __name__ == '__mein__':
+    j = json.loads(open("basketball.json").read())
+    bindings = j['results']['bindings']
+    texts = [extract_entities(b['blb']['value']) for b in bindings]
+    pass

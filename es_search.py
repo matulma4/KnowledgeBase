@@ -11,7 +11,7 @@ from elasticsearch_dsl.query import Q
 from nltk import ne_chunk, pos_tag, word_tokenize
 from nltk.tree import Tree
 from requests_aws4auth import AWS4Auth
-from ld_creator import create_property, create_text, create_headline, create_type, create_date, create_topic
+from ld_creator import create_property, create_text, create_type, create_date, create_topic
 from nltk.metrics.distance import edit_distance
 
 from config import *
@@ -174,20 +174,20 @@ def add_entities(res, extract_func, mode):
             elif mode == "article":
                 # print(article.__dict__['_d_']['@timestamp'])
                 # f.write("\n".join(R1) + "\n")
-                f.write(create_headline(article.meta.id, article.headline.replace("\"", "")) + "\n")
+                f.write(create_text(article.meta.id, article.headline.replace("\"", ""), "Headline") + "\n")
                 f.write(create_text(article.meta.id, article.blurb.replace("\"", ""), "Blurb") + "\n")
                 f.write(create_type(mode, article.meta.id) + "\n")
                 f.write(create_date(article.__dict__['_d_']['@timestamp'][:10], article.meta.id) + "\n")
             elif mode == "rss":
-                f.write(create_headline(article.meta.id, article.title.replace("\"", "")) + "\n")
+                f.write(create_text(article.meta.id, article.title.replace("\"", ""), "Headline") + "\n")
                 f.write(create_text(article.meta.id, article.summary.replace("\"", ""), "Blurb") + "\n")
                 f.write(create_type(mode, article.meta.id) + "\n")
                 f.write(create_topic(article.type, article.meta.id) + "\n")
                 f.write(create_date(article.__dict__['_d_']['@timestamp'][:10], article.meta.id) + "\n")
-
+            # Gossip
             else:
                 # f.write("\n".join(R1) + "\n")
-                f.write(create_headline(article.meta.id, article.title.replace("\"", "")) + "\n")
+                f.write(create_text(article.meta.id, article.title.replace("\"", ""), "Headline") + "\n")
                 f.write(create_text(article.meta.id, article.title.replace("\"", ""), "Blurb") + "\n")
                 f.write(create_type(mode, article.meta.id) + "\n")
 

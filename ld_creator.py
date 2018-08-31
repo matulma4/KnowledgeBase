@@ -19,13 +19,6 @@ def create_text(object_id, text, prop):
     return " ".join([subject, predicate, _object, "."])
 
 
-def create_headline(object_id, headline):
-    subject = "<" + our_namespace + object_id + ">"
-    predicate = "<" + our_namespace + "hasHeadline>"
-    _object = "\"" + headline + "\"" + "@en"
-    return " ".join([subject, predicate, _object, "."])
-
-
 def create_type(prop, object_id):
     subject = "<" + our_namespace + object_id + ">"
     predicate = "<" + our_namespace + "isType>"

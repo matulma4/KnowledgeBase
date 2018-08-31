@@ -11,7 +11,8 @@ from elasticsearch_dsl.query import Q
 from nltk import ne_chunk, pos_tag, word_tokenize
 from nltk.tree import Tree
 from requests_aws4auth import AWS4Auth
-from ld_creator import create_property, create_text, create_headline, create_type, create_date
+from ld_creator import create_property, create_text, create_headline, create_type, create_date, create_topic
+from nltk.metrics.distance import edit_distance
 
 from config import *
 import os
@@ -101,6 +102,10 @@ def extract_from_ff(ff):
     return extract_entities(ff.text)
 
 
+def extract_from_rss(rss):
+    return extract_entities(rss.summary)
+
+
 def extract_from_art(art):
     result = []
     try:
@@ -146,31 +151,48 @@ def add_entities(res, extract_func, mode):
                 q = web_search(p)['results']
                 if len(q) <= 0 or len(q[0]) <= 0:
                     continue
+                j = 0
                 if mode == "funfact":
-                    r1 = create_property(q[0][0]["freebase_id"], article.id)
-                    # R1.append(r1)
+                    # try:
+                    #     while edit_distance(p.lower().replace(" ", "_"), q[0][j]["db_id"].lower()) >= 5:
+                    #         j += 1
+                    # except IndexError:
+                    #     continue
+                    # #if edit_distance(p.lower().replace(" ", "_"), q[0][j]["db_id"].lower()) < 5:
+                    # print(q[0][j]["db_id"])
+                    r1 = create_property(q[0][j]["freebase_id"], article.id)
+                    R1.append(r1)
                 else:
-                    r1 = create_property(q[0][0]["freebase_id"], article.meta.id)
-                R1.append(r1)
-            if mode == "funfact":
+                    r1 = create_property(q[0][j]["freebase_id"], article.meta.id)
+                    R1.append(r1)
+
+            if R1:
                 f.write("\n".join(R1) + "\n")
+            if mode == "funfact":
                 f.write(create_text(article.id, article.text.replace("\"", ""), "Blurb") + "\n")
                 f.write(create_type(mode, article.id) + "\n")
             elif mode == "article":
-                print(article.__dict__['_d_']['@timestamp'])
-                f.write("\n".join(R1) + "\n")
+                # print(article.__dict__['_d_']['@timestamp'])
+                # f.write("\n".join(R1) + "\n")
                 f.write(create_headline(article.meta.id, article.headline.replace("\"", "")) + "\n")
                 f.write(create_text(article.meta.id, article.blurb.replace("\"", ""), "Blurb") + "\n")
                 f.write(create_type(mode, article.meta.id) + "\n")
                 f.write(create_date(article.__dict__['_d_']['@timestamp'][:10], article.meta.id) + "\n")
+            elif mode == "rss":
+                f.write(create_headline(article.meta.id, article.title.replace("\"", "")) + "\n")
+                f.write(create_text(article.meta.id, article.summary.replace("\"", ""), "Blurb") + "\n")
+                f.write(create_type(mode, article.meta.id) + "\n")
+                f.write(create_topic(article.type, article.meta.id) + "\n")
+                f.write(create_date(article.__dict__['_d_']['@timestamp'][:10], article.meta.id) + "\n")
+
             else:
-                f.write("\n".join(R1) + "\n")
+                # f.write("\n".join(R1) + "\n")
                 f.write(create_headline(article.meta.id, article.title.replace("\"", "")) + "\n")
                 f.write(create_text(article.meta.id, article.title.replace("\"", ""), "Blurb") + "\n")
                 f.write(create_type(mode, article.meta.id) + "\n")
+
         except AttributeError as e:
             print(e)
-            pass
         if i == limit:
             break
         if i % 100 == 0:
@@ -237,7 +259,7 @@ def search(name):
 
 if __name__ == '__main__':
     gc.enable()
-    span = sys.argv[1]
+    span = '5y'# sys.argv[1]
     nltk.download('averaged_perceptron_tagger')
     nltk.download('punkt')
     nltk.download('maxent_ne_chunker')
@@ -248,9 +270,10 @@ if __name__ == '__main__':
 
     f = open(rdf_name + ".rdf", "w", encoding="utf-8")
     print("Span is " + span + ", limit is " + str(limit) + ".\n")
-
-    add_entities(query_es("facts", "reddit-*", span, es), extract_from_ff, "funfact")
-    add_entities(query_es("article", "washpost_article*", '5y', es), extract_from_art, "article")
+    for t in ["games", "sports", "music", "movies"]:
+        add_entities(query_es(t, "rss*", span, es), extract_from_rss, "rss")
+    # add_entities(query_es("facts", "reddit-*", span, es), extract_from_ff, "funfact")
+    # add_entities(query_es("article", "washpost_article*", '2d', es), extract_from_art, "article")
     # add_entities(query_es("gossip", "gossip-*", '5y', es), extract_from_gossip, "gossip")
     f.close()
 
@@ -258,5 +281,5 @@ if __name__ == '__main__':
 if __name__ == '__mein__':
     j = json.loads(open("basketball.json").read())
     bindings = j['results']['bindings']
-    texts = [extract_entities(b['blb']['value']) for b in bindings]
+    texts = [extract_entities(b['lab_x']['value']) for b in bindings]
     pass

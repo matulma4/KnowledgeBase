@@ -40,6 +40,13 @@ def create_date(prop, object_id):
     return " ".join([subject, predicate, _object, "."])
 
 
+def create_topic(prop, object_id):
+    subject = "<" + our_namespace + object_id + ">"
+    predicate = "<" + our_namespace + "isTopic>"
+    _object = "<" + our_namespace + "topics/" + prop + ">"
+    return " ".join([subject, predicate, _object, "."])
+
+
 def create_entity(ent_name):
     k_name = ent_name.name.lower().replace(" ", "_")
     for c in "\'.,/":

@@ -103,7 +103,7 @@ def extract_from_ff(ff):
 
 
 def extract_from_rss(rss):
-    return extract_entities(rss.title)
+    return extract_entities(rss.title) + extract_entities(rss.summary)
 
 
 def extract_from_art(art):
@@ -179,12 +179,11 @@ def add_entities(res, extract_func, mode):
                 f.write(create_type(mode, article.meta.id) + "\n")
                 f.write(create_date(article.__dict__['_d_']['@timestamp'][:10], article.meta.id) + "\n")
             elif mode == "rss":
-                pass
-                # f.write(create_headline(article.meta.id, article.title.replace("\"", "")) + "\n")
-                # f.write(create_text(article.meta.id, article.summary.replace("\"", ""), "Blurb") + "\n")
-                # f.write(create_type(mode, article.meta.id) + "\n")
-                # f.write(create_topic(article.type, article.meta.id) + "\n")
-                # f.write(create_date(article.__dict__['_d_']['@timestamp'][:10], article.meta.id) + "\n")
+                f.write(create_headline(article.meta.id, article.title.replace("\"", "")) + "\n")
+                f.write(create_text(article.meta.id, article.summary.replace("\"", ""), "Blurb") + "\n")
+                f.write(create_type(mode, article.meta.id) + "\n")
+                f.write(create_topic(article.type, article.meta.id) + "\n")
+                f.write(create_date(article.__dict__['_d_']['@timestamp'][:10], article.meta.id) + "\n")
 
             else:
                 # f.write("\n".join(R1) + "\n")
@@ -260,7 +259,7 @@ def search(name):
 
 if __name__ == '__main__':
     gc.enable()
-    span = '5y'# sys.argv[1]
+    span = sys.argv[1]
     nltk.download('averaged_perceptron_tagger')
     nltk.download('punkt')
     nltk.download('maxent_ne_chunker')
@@ -272,9 +271,9 @@ if __name__ == '__main__':
     f = open(rdf_name + ".rdf", "w", encoding="utf-8")
     print("Span is " + span + ", limit is " + str(limit) + ".\n")
     for t in ["games", "sports", "music", "movies"]:
-        add_entities(query_es(t, "rss*", span, es), extract_from_rss, "rss")
-    # add_entities(query_es("facts", "reddit-*", span, es), extract_from_ff, "funfact")
-    # add_entities(query_es("article", "washpost_article*", '2d', es), extract_from_art, "article")
+        add_entities(query_es(t, "rss*", "2d", es), extract_from_rss, "rss")
+    add_entities(query_es("facts", "reddit-*", span, es), extract_from_ff, "funfact")
+    add_entities(query_es("article", "washpost_article*", '2d', es), extract_from_art, "article")
     # add_entities(query_es("gossip", "gossip-*", '5y', es), extract_from_gossip, "gossip")
     f.close()
 

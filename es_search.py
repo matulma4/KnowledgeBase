@@ -140,6 +140,20 @@ def add_ff(ff, ent):
     ent.add_funfact(ff)
 
 
+def edit_primarysection(primarysection):
+    ps = primarysection.lower()
+    if len(ps) == 0:
+        return "none"
+    if "/" in ps:
+        pssplit = ps.split("/")
+        if len(pssplit[0]) == 0:
+            return pssplit[1]
+        return pssplit[0]
+    if "-" in ps and ps != primarysection:
+        return ps.split("-")[0]
+    return ps
+
+
 def add_entities(res, extract_func, mode):
     i = 1
     for article in res:
@@ -177,6 +191,7 @@ def add_entities(res, extract_func, mode):
                 f.write(create_text(article.meta.id, article.headline.replace("\"", ""), "Headline") + "\n")
                 f.write(create_text(article.meta.id, article.blurb.replace("\"", ""), "Blurb") + "\n")
                 f.write(create_type(mode, article.meta.id) + "\n")
+                f.write(create_topic(edit_primarysection(article.primarysection), article.meta.id) + "\n")
                 f.write(create_date(article.__dict__['_d_']['@timestamp'][:10], article.meta.id) + "\n")
             elif mode == "rss":
                 f.write(create_text(article.meta.id, article.title.replace("\"", ""), "Headline") + "\n")

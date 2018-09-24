@@ -189,16 +189,16 @@ def add_entities(res, extract_func, mode):
                 # print(article.__dict__['_d_']['@timestamp'])
                 # f.write("\n".join(R1) + "\n")
                 f.write(create_text(article.meta.id, article.headline.replace("\"", ""), "Headline") + "\n")
-                f.write(create_text(article.meta.id, article.blurb.replace("\"", ""), "Blurb") + "\n")
                 f.write(create_type(mode, article.meta.id) + "\n")
-                f.write(create_topic(edit_primarysection(article.primarysection), article.meta.id) + "\n")
                 f.write(create_date(article.__dict__['_d_']['@timestamp'][:10], article.meta.id) + "\n")
+                f.write(create_text(article.meta.id, article.blurb.replace("\"", ""), "Blurb") + "\n")
+                f.write(create_topic(edit_primarysection(article.primarysection), article.meta.id) + "\n")
             elif mode == "rss":
                 f.write(create_text(article.meta.id, article.title.replace("\"", ""), "Headline") + "\n")
                 f.write(create_text(article.meta.id, article.summary.replace("\"", ""), "Blurb") + "\n")
                 f.write(create_type(mode, article.meta.id) + "\n")
-                f.write(create_topic(article.type, article.meta.id) + "\n")
                 f.write(create_date(article.__dict__['_d_']['@timestamp'][:10], article.meta.id) + "\n")
+                f.write(create_topic(article.type, article.meta.id) + "\n")
             # Gossip
             else:
                 # f.write("\n".join(R1) + "\n")
